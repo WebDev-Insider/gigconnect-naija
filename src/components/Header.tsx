@@ -1,6 +1,7 @@
 import { Button } from "@/components/ui/button";
 import { Menu, X } from "lucide-react";
 import { useState } from "react";
+import { Link } from "react-router-dom";
 
 const Header = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -31,11 +32,11 @@ const Header = () => {
 
           {/* Desktop CTAs */}
           <div className="hidden md:flex items-center space-x-4">
-            <Button variant="ghost" className="text-foreground hover:text-primary">
-              Sign In
+            <Button asChild variant="ghost" className="text-foreground hover:text-primary">
+              <Link to="/login">Sign In</Link>
             </Button>
-            <Button className="bg-gradient-primary hover:opacity-90 transition-opacity">
-              Get Started
+            <Button asChild className="bg-gradient-primary hover:opacity-90 transition-opacity">
+              <Link to="/register">Get Started</Link>
             </Button>
           </div>
 
@@ -62,11 +63,11 @@ const Header = () => {
                 About
               </a>
               <div className="flex flex-col space-y-2 pt-4">
-                <Button variant="ghost" className="text-foreground hover:text-primary justify-start">
-                  Sign In
+                <Button asChild variant="ghost" className="text-foreground hover:text-primary justify-start">
+                  <Link to="/login">Sign In</Link>
                 </Button>
-                <Button className="bg-gradient-primary hover:opacity-90 transition-opacity justify-start">
-                  Get Started
+                <Button asChild className="bg-gradient-primary hover:opacity-90 transition-opacity justify-start">
+                  <Link to="/register">Get Started</Link>
                 </Button>
               </div>
             </nav>
