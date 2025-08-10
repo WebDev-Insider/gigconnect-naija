@@ -19,6 +19,7 @@ const Register = () => {
     confirmPassword: "",
     userType: "client", // default to client
     nin: "",
+    ninFile: null as File | null,
     passportFile: null as File | null
   });
 
@@ -48,12 +49,12 @@ const Register = () => {
     }));
   };
 
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>, fileType: 'nin' | 'passport') => {
     const file = e.target.files?.[0];
     if (file) {
       setFormData(prev => ({
         ...prev,
-        passportFile: file
+        [fileType === 'nin' ? 'ninFile' : 'passportFile']: file
       }));
     }
   };
@@ -228,6 +229,40 @@ const Register = () => {
                 </div>
               </div>
 
+              {/* NIN Document Upload */}
+              <div className="space-y-2">
+                <Label htmlFor="ninDocument">NIN Document Upload</Label>
+                <div className="relative">
+                  <div className="flex items-center justify-center w-full">
+                    <label
+                      htmlFor="ninDocument"
+                      className="flex flex-col items-center justify-center w-full h-32 border-2 border-dashed border-muted-foreground/25 rounded-lg cursor-pointer bg-muted/10 hover:bg-muted/20 transition-colors"
+                    >
+                      <div className="flex flex-col items-center justify-center pt-5 pb-6">
+                        <Upload className="w-8 h-8 mb-2 text-muted-foreground" />
+                        <p className="mb-2 text-sm text-muted-foreground">
+                          <span className="font-semibold">Click to upload</span> NIN document
+                        </p>
+                        <p className="text-xs text-muted-foreground">PNG, JPG or PDF (MAX. 5MB)</p>
+                        {formData.ninFile && (
+                          <p className="text-xs text-primary mt-2 font-medium">
+                            Selected: {formData.ninFile.name}
+                          </p>
+                        )}
+                      </div>
+                      <input
+                        id="ninDocument"
+                        type="file"
+                        className="hidden"
+                        accept=".jpg,.jpeg,.png,.pdf"
+                        onChange={(e) => handleFileChange(e, 'nin')}
+                        required
+                      />
+                    </label>
+                  </div>
+                </div>
+              </div>
+
               {/* Passport Upload */}
               <div className="space-y-2">
                 <Label htmlFor="passport">International Passport</Label>
@@ -254,7 +289,7 @@ const Register = () => {
                         type="file"
                         className="hidden"
                         accept=".jpg,.jpeg,.png,.pdf"
-                        onChange={handleFileChange}
+                        onChange={(e) => handleFileChange(e, 'passport')}
                         required
                       />
                     </label>
