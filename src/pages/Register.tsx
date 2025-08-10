@@ -5,7 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
-import { Eye, EyeOff, Mail, Lock, User, Phone } from "lucide-react";
+import { Eye, EyeOff, Mail, Lock, User, Phone, Upload, CreditCard } from "lucide-react";
 
 const Register = () => {
   const [showPassword, setShowPassword] = useState(false);
@@ -17,7 +17,9 @@ const Register = () => {
     phone: "",
     password: "",
     confirmPassword: "",
-    userType: "client" // default to client
+    userType: "client", // default to client
+    nin: "",
+    passportFile: null as File | null
   });
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -44,6 +46,16 @@ const Register = () => {
       ...prev,
       userType: value
     }));
+  };
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      setFormData(prev => ({
+        ...prev,
+        passportFile: file
+      }));
+    }
   };
 
   return (
@@ -185,6 +197,69 @@ const Register = () => {
                 >
                   {showConfirmPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                 </button>
+              </div>
+            </div>
+
+            {/* KYC Section */}
+            <div className="border-t pt-4 space-y-4">
+              <div className="text-center">
+                <Label className="text-lg font-semibold text-primary">Identity Verification (KYC)</Label>
+                <p className="text-sm text-muted-foreground mt-1">
+                  Your account will be pending approval until documents are verified
+                </p>
+              </div>
+
+              {/* NIN */}
+              <div className="space-y-2">
+                <Label htmlFor="nin">National Identification Number (NIN)</Label>
+                <div className="relative">
+                  <CreditCard className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                  <Input
+                    id="nin"
+                    name="nin"
+                    placeholder="Enter your 11-digit NIN"
+                    value={formData.nin}
+                    onChange={handleInputChange}
+                    className="pl-10"
+                    maxLength={11}
+                    pattern="[0-9]{11}"
+                    required
+                  />
+                </div>
+              </div>
+
+              {/* Passport Upload */}
+              <div className="space-y-2">
+                <Label htmlFor="passport">International Passport</Label>
+                <div className="relative">
+                  <div className="flex items-center justify-center w-full">
+                    <label
+                      htmlFor="passport"
+                      className="flex flex-col items-center justify-center w-full h-32 border-2 border-dashed border-muted-foreground/25 rounded-lg cursor-pointer bg-muted/10 hover:bg-muted/20 transition-colors"
+                    >
+                      <div className="flex flex-col items-center justify-center pt-5 pb-6">
+                        <Upload className="w-8 h-8 mb-2 text-muted-foreground" />
+                        <p className="mb-2 text-sm text-muted-foreground">
+                          <span className="font-semibold">Click to upload</span> passport photo
+                        </p>
+                        <p className="text-xs text-muted-foreground">PNG, JPG or PDF (MAX. 5MB)</p>
+                        {formData.passportFile && (
+                          <p className="text-xs text-primary mt-2 font-medium">
+                            Selected: {formData.passportFile.name}
+                          </p>
+                        )}
+                      </div>
+                      <input
+                        id="passport"
+                        type="file"
+                        className="hidden"
+                        accept=".jpg,.jpeg,.png,.pdf"
+                        onChange={handleFileChange}
+                        required
+                      />
+                    </label>
+                  </div>
+                </div>
               </div>
             </div>
           </CardContent>
