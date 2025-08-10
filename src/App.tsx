@@ -9,6 +9,9 @@ import Register from "./pages/Register";
 import ClientDashboard from "./pages/ClientDashboard";
 import FreelancerDashboard from "./pages/FreelancerDashboard";
 import AdminDashboard from "./pages/AdminDashboard";
+import GigManagement from "./pages/GigManagement";
+import WalletPayments from "./pages/WalletPayments";
+import ModeratorDashboard from "./pages/ModeratorDashboard";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -26,6 +29,9 @@ const App = () => (
           <Route path="/client-dashboard" element={<ClientDashboard />} />
           <Route path="/freelancer-dashboard" element={<FreelancerDashboard />} />
           <Route path="/admin-dashboard" element={<AdminDashboard />} />
+          <Route path="/gig-management" element={<GigManagement />} />
+          <Route path="/wallet-payments" element={<WalletPayments />} />
+          <Route path="/moderator-dashboard" element={<ModeratorDashboard />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>
