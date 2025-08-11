@@ -13,6 +13,8 @@ import GigManagement from "./pages/GigManagement";
 import WalletPayments from "./pages/WalletPayments";
 import ModeratorDashboard from "./pages/ModeratorDashboard";
 import ChatPage from "./pages/ChatPage";
+import GigBrowsing from "./pages/GigBrowsing";
+import JobPosting from "./pages/JobPosting";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -34,6 +36,8 @@ const App = () => (
           <Route path="/wallet-payments" element={<WalletPayments />} />
           <Route path="/moderator-dashboard" element={<ModeratorDashboard />} />
           <Route path="/chat" element={<ChatPage />} />
+          <Route path="/browse-gigs" element={<GigBrowsing />} />
+          <Route path="/post-job" element={<JobPosting />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>
