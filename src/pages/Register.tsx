@@ -104,9 +104,11 @@ const Register = () => {
   };
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = e.target;
+    const nextValue = name === 'phone' ? value.trimStart() : value; // avoid leading spaces
     setFormData((prev) => ({
       ...prev,
-      [e.target.name]: e.target.value,
+      [name]: nextValue,
     }));
   };
 
