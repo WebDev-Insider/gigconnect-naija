@@ -304,7 +304,7 @@ export interface CreateOrderRequest {
 
 export interface PaymentProofRequest {
   payment_reference: string;
-  proof_file: Express.Multer.File;
+  proof_file: any;
 }
 
 export interface ChatMessageRequest {

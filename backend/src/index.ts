@@ -4,7 +4,7 @@ import helmet from 'helmet';
 import compression from 'compression';
 import morgan from 'morgan';
 import { createServer } from 'http';
-import { Server as SocketIOServer } from 'socket.io';
+// import { Server as SocketIOServer } from 'socket.io';
 import dotenv from 'dotenv';
 import { pathToFileURL } from 'url';
 
@@ -28,23 +28,23 @@ import orderRoutes from './routes/orders';
 import paymentRoutes from './routes/payments';
 import chatRoutes from './routes/chat';
 import adminRoutes from './routes/admin';
-import webhookRoutes from './routes/webhooks';
+// import webhookRoutes from './routes/webhooks';
 
 // Import services
-import { setupSocketHandlers } from './services/socketService';
-import { setupBackgroundWorkers } from './workers';
+// import { setupSocketHandlers } from './services/socketService';
+// import { setupBackgroundWorkers } from './workers';
 
 dotenv.config();
 
 const app = express();
 const server = createServer(app);
-const io = new SocketIOServer(server, {
-  cors: {
-    origin: process.env.CORS_ORIGIN?.split(',') || ['http://localhost:3000'],
-    methods: ['GET', 'POST'],
-    credentials: true
-  }
-});
+// const io = new SocketIOServer(server, {
+//   cors: {
+//     origin: process.env.CORS_ORIGIN?.split(',') || ['http://localhost:3000'],
+//     methods: ['GET', 'POST'],
+//     credentials: true
+//   }
+// });
 
 const PORT = process.env.PORT || 3001;
 const API_VERSION = process.env.API_VERSION || 'v1';
@@ -114,7 +114,7 @@ app.use(`/api/${API_VERSION}/orders`, orderRoutes);
 app.use(`/api/${API_VERSION}/payments`, paymentRoutes);
 app.use(`/api/${API_VERSION}/chat`, chatRoutes);
 app.use(`/api/${API_VERSION}/admin`, adminRoutes);
-app.use(`/api/${API_VERSION}/webhooks`, webhookRoutes);
+// app.use(`/api/${API_VERSION}/webhooks`, webhookRoutes);
 
 // Root endpoint
 app.get('/', (req, res) => {
@@ -133,8 +133,7 @@ app.use(notFound);
 // Error handling middleware
 app.use(errorHandler);
 
-// Socket.IO setup
-setupSocketHandlers(io);
+// Socket.IO setup skipped for build-only mode
 
 // Initialize database connections and start server
 const startServer = async (): Promise<void> => {
@@ -150,9 +149,7 @@ const startServer = async (): Promise<void> => {
     console.log('🗄️ Setting up MongoDB collections...');
     await setupMongoCollections();
     
-    // Setup background workers
-    console.log('⚙️ Setting up background workers...');
-    await setupBackgroundWorkers();
+    // Background workers skipped for build-only mode
     
     // Start server
     server.listen(PORT, () => {

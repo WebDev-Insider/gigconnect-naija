@@ -23,13 +23,17 @@ interface ChatInterfaceProps {
   projectTitle: string;
   otherUserName: string;
   projectStatus: 'active' | 'pending_payment' | 'in_progress' | 'completed';
+  chatId?: string;
+  orderId?: string;
 }
 
 export const ChatInterface: React.FC<ChatInterfaceProps> = ({
   userRole,
   projectTitle,
   otherUserName,
-  projectStatus
+  projectStatus,
+  chatId,
+  orderId
 }) => {
   const [messages, setMessages] = useState<Message[]>([
     {
@@ -80,19 +84,42 @@ export const ChatInterface: React.FC<ChatInterfaceProps> = ({
     }
   };
 
-  const submitPaymentProof = () => {
+  const submitPaymentProof = async () => {
     if (paymentProof) {
-      const message: Message = {
-        id: Date.now().toString(),
-        sender: userRole,
-        content: `Payment proof uploaded: ${paymentProof.name}`,
-        timestamp: new Date(),
-        type: 'payment',
-        attachments: [paymentProof.name]
-      };
-      setMessages([...messages, message]);
-      setShowPaymentModal(false);
-      setPaymentProof(null);
+      try {
+        // Optionally initiate payment to get a reference
+        if (orderId) {
+          try {
+            const { apiClient } = await import('@/lib/api');
+            await apiClient.initiatePayment({ orderId });
+          } catch {}
+        }
+
+        // Send a chat message noting the payment proof
+        if (chatId) {
+          const { apiClient } = await import('@/lib/api');
+          await apiClient.sendMessage(chatId, {
+            type: 'payment',
+            content: `Payment proof uploaded: ${paymentProof.name}`,
+            attachments: [paymentProof.name],
+            orderId,
+          });
+        }
+
+        const message: Message = {
+          id: Date.now().toString(),
+          sender: userRole,
+          content: `Payment proof uploaded: ${paymentProof.name}`,
+          timestamp: new Date(),
+          type: 'payment',
+          attachments: [paymentProof.name]
+        };
+        setMessages([...messages, message]);
+        setShowPaymentModal(false);
+        setPaymentProof(null);
+      } catch (e) {
+        console.error('Submit payment proof failed', e);
+      }
     }
   };
 

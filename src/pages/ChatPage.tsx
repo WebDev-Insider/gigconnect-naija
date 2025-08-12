@@ -4,8 +4,13 @@ import Header from '@/components/Header';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Clock, DollarSign, User } from 'lucide-react';
+import { useLocation } from 'react-router-dom';
 
 const ChatPage = () => {
+  const { search } = useLocation();
+  const params = new URLSearchParams(search);
+  const chatId = params.get('chatId') || undefined;
+  const orderId = params.get('orderId') || undefined;
   // Mock data - in real app this would come from URL params/state
   const chatData = {
     userRole: 'client' as const,
@@ -79,6 +84,8 @@ const ChatPage = () => {
                   projectTitle={chatData.projectTitle}
                   otherUserName={chatData.otherUserName}
                   projectStatus={chatData.projectStatus}
+                  chatId={chatId}
+                  orderId={orderId}
                 />
               </Card>
             </div>

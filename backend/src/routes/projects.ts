@@ -39,7 +39,7 @@ router.post(
 
       const now = new Date();
       const project = {
-        client_user_id: req.user!.id,
+        client_user_id: (req as any).user!.id,
         title: req.body.title,
         description: req.body.description,
         category: req.body.category,
@@ -142,8 +142,8 @@ router.put(
       }
 
       if (
-        req.user!.role !== UserRole.ADMIN &&
-        doc.client_user_id !== req.user!.id
+        (req as any).user!.role !== UserRole.ADMIN &&
+        (doc as any).client_user_id !== (req as any).user!.id
       ) {
         return res.status(403).json({ success: false, error: 'Access denied' });
       }
@@ -169,7 +169,7 @@ router.put(
       res.json({
         success: true,
         message: 'Project updated successfully',
-        data: { id: updated!._id.toString(), ...updated },
+        data: { id: (updated as any)!._id.toString(), ...(updated as any) },
       });
     } catch (error) {
       console.error('Update project error:', error);

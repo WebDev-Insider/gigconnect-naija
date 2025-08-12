@@ -326,17 +326,16 @@ const FreelancerDashboard = () => {
               <Card>
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2">
-                    <Wallet className="h-5 w-5" />
-                    Available Balance
+                    <DollarSign className="h-5 w-5" />
+                    Earnings Summary
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
                   <div className="space-y-4">
                     <div className="text-center space-y-2">
-                      <p className="text-3xl font-bold text-primary">₦75,000</p>
-                      <p className="text-muted-foreground">Ready for withdrawal</p>
+                      <p className="text-3xl font-bold text-primary">₦0</p>
+                      <p className="text-muted-foreground">Earnings are released per-job after client approval</p>
                     </div>
-                    <Button className="w-full">Withdraw Funds</Button>
                   </div>
                 </CardContent>
               </Card>
