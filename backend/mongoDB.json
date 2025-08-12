@@ -1,0 +1,23 @@
+{
+  "version": "1.0",
+  "connections": [
+    {
+      "name": "GigConnect Local Development",
+      "connectionString": "mongodb://localhost:27017/gigconnect",
+      "isFavorite": true,
+      "color": "#5C5C5C"
+    },
+    {
+      "name": "GigConnect MongoDB Atlas",
+      "connectionString": "mongodb+srv://jadeedgetech:xJhXLW9mlD8AcVcN@cluster0.sieeblg.mongodb.net/",
+      "isFavorite": false,
+      "color": "#13AA52"
+    },
+    {
+      "name": "GigConnect Docker Compose",
+      "connectionString": "mongodb://admin:password123@localhost:27017/gigconnect?authSource=admin",
+      "isFavorite": false,
+      "color": "#2496ED"
+    }
+  ]
+}

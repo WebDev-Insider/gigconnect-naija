@@ -1,260 +1,356 @@
-import { useState } from "react";
-import { Link } from "react-router-dom";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
-import { Eye, EyeOff, Mail, Lock, User, Phone, Upload, CreditCard } from "lucide-react";
+import { useState } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from '@/components/ui/card';
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
+import {
+  Eye,
+  EyeOff,
+  Mail,
+  Lock,
+  User,
+  Phone,
+  Upload,
+  CreditCard,
+  Loader2,
+} from 'lucide-react';
+import { useAuth } from '@/contexts/AuthContext';
+import { toast } from 'sonner';
 
 const Register = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
   const [formData, setFormData] = useState({
-    firstName: "",
-    lastName: "",
-    email: "",
-    phone: "",
-    password: "",
-    confirmPassword: "",
-    userType: "client", // default to client
-    nin: "",
+    firstName: '',
+    lastName: '',
+    email: '',
+    phone: '',
+    password: '',
+    confirmPassword: '',
+    userType: 'client' as 'client' | 'freelancer', // default to client
+    nin: '',
     ninFile: null as File | null,
-    passportFile: null as File | null
+    passportFile: null as File | null,
   });
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const { signup } = useAuth();
+  const navigate = useNavigate();
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (formData.password !== formData.confirmPassword) {
-      alert("Passwords don't match!");
+      toast.error("Passwords don't match!");
       return;
     }
-    
-    // TODO: Implement Supabase authentication
-    console.log("Registration attempt:", formData);
+
+    if (formData.password.length < 8) {
+      toast.error('Password must be at least 8 characters long');
+      return;
+    }
+
+    setIsLoading(true);
+
+    try {
+      const success = await signup({
+        email: formData.email,
+        password: formData.password,
+        firstName: formData.firstName,
+        lastName: formData.lastName,
+        role: formData.userType,
+        phone: formData.phone,
+      });
+
+      if (success) {
+        // Redirect to appropriate dashboard based on user type
+        const dashboardRoute =
+          formData.userType === 'client'
+            ? '/client-dashboard'
+            : '/freelancer-dashboard';
+        navigate(dashboardRoute, { replace: true });
+      }
+    } catch (error: any) {
+      // Enhanced error handling for 400 and 409
+      if (error?.message?.includes('409')) {
+        toast.error('An account with this email already exists.');
+      } else if (error?.message?.includes('400')) {
+        // Try to show backend error message if available
+        const backendMsg =
+          error?.response?.data?.message || error?.data?.message;
+        // Log backend error for debugging
+        if (backendMsg) {
+          console.error('Backend error message:', backendMsg);
+        }
+        toast.error(
+          backendMsg || 'Invalid registration details. Please check your input.'
+        );
+      } else {
+        toast.error('Registration failed. Please try again.');
+      }
+      console.error('Registration error:', error);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setFormData(prev => ({
+    setFormData((prev) => ({
       ...prev,
-      [e.target.name]: e.target.value
+      [e.target.name]: e.target.value,
     }));
   };
 
   const handleUserTypeChange = (value: string) => {
-    setFormData(prev => ({
+    setFormData((prev) => ({
       ...prev,
-      userType: value
+      userType: value as 'client' | 'freelancer',
     }));
   };
 
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>, fileType: 'nin' | 'passport') => {
+  const handleFileChange = (
+    e: React.ChangeEvent<HTMLInputElement>,
+    fileType: 'nin' | 'passport'
+  ) => {
     const file = e.target.files?.[0];
     if (file) {
-      setFormData(prev => ({
+      setFormData((prev) => ({
         ...prev,
-        [fileType === 'nin' ? 'ninFile' : 'passportFile']: file
+        [fileType === 'nin' ? 'ninFile' : 'passportFile']: file,
       }));
     }
   };
 
   return (
-    <div className="min-h-screen bg-gradient-subtle flex items-center justify-center p-4">
-      <Card className="w-full max-w-md shadow-elegant">
-        <CardHeader className="text-center">
-          <CardTitle className="text-2xl font-bold text-primary">Join GigConnect</CardTitle>
-          <CardDescription>Create your account and start connecting</CardDescription>
+    <div className='min-h-screen bg-gradient-subtle flex items-center justify-center p-4'>
+      <Card className='w-full max-w-md shadow-elegant'>
+        <CardHeader className='text-center'>
+          <CardTitle className='text-2xl font-bold text-primary'>
+            Join GigConnect
+          </CardTitle>
+          <CardDescription>
+            Create your account and start connecting
+          </CardDescription>
         </CardHeader>
-        
+
         <form onSubmit={handleSubmit}>
-          <CardContent className="space-y-4">
+          <CardContent className='space-y-4'>
             {/* User Type Selection */}
-            <div className="space-y-3">
+            <div className='space-y-3'>
               <Label>I want to:</Label>
-              <RadioGroup value={formData.userType} onValueChange={handleUserTypeChange}>
-                <div className="flex items-center space-x-2">
-                  <RadioGroupItem value="client" id="client" />
-                  <Label htmlFor="client">Hire freelancers (Client)</Label>
+              <RadioGroup
+                value={formData.userType}
+                onValueChange={handleUserTypeChange}
+              >
+                <div className='flex items-center space-x-2'>
+                  <RadioGroupItem value='client' id='client' />
+                  <Label htmlFor='client'>Hire freelancers (Client)</Label>
                 </div>
-                <div className="flex items-center space-x-2">
-                  <RadioGroupItem value="freelancer" id="freelancer" />
-                  <Label htmlFor="freelancer">Offer services (Freelancer)</Label>
+                <div className='flex items-center space-x-2'>
+                  <RadioGroupItem value='freelancer' id='freelancer' />
+                  <Label htmlFor='freelancer'>
+                    Offer services (Freelancer)
+                  </Label>
                 </div>
               </RadioGroup>
             </div>
-            
+
             {/* Name Fields */}
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label htmlFor="firstName">First Name</Label>
-                <div className="relative">
-                  <User className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+            <div className='grid grid-cols-2 gap-4'>
+              <div className='space-y-2'>
+                <Label htmlFor='firstName'>First Name</Label>
+                <div className='relative'>
+                  <User className='absolute left-3 top-3 h-4 w-4 text-muted-foreground' />
                   <Input
-                    id="firstName"
-                    name="firstName"
-                    placeholder="First name"
+                    id='firstName'
+                    name='firstName'
+                    placeholder='First name'
                     value={formData.firstName}
                     onChange={handleInputChange}
-                    className="pl-10"
+                    className='pl-10'
                     required
                   />
                 </div>
               </div>
-              
-              <div className="space-y-2">
-                <Label htmlFor="lastName">Last Name</Label>
+
+              <div className='space-y-2'>
+                <Label htmlFor='lastName'>Last Name</Label>
                 <Input
-                  id="lastName"
-                  name="lastName"
-                  placeholder="Last name"
+                  id='lastName'
+                  name='lastName'
+                  placeholder='Last name'
                   value={formData.lastName}
                   onChange={handleInputChange}
                   required
                 />
               </div>
             </div>
-            
+
             {/* Email */}
-            <div className="space-y-2">
-              <Label htmlFor="email">Email Address</Label>
-              <div className="relative">
-                <Mail className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+            <div className='space-y-2'>
+              <Label htmlFor='email'>Email Address</Label>
+              <div className='relative'>
+                <Mail className='absolute left-3 top-3 h-4 w-4 text-muted-foreground' />
                 <Input
-                  id="email"
-                  name="email"
-                  type="email"
-                  placeholder="Enter your email"
+                  id='email'
+                  name='email'
+                  type='email'
+                  placeholder='Enter your email'
                   value={formData.email}
                   onChange={handleInputChange}
-                  className="pl-10"
+                  className='pl-10'
                   required
                 />
               </div>
             </div>
-            
+
             {/* Phone */}
-            <div className="space-y-2">
-              <Label htmlFor="phone">Phone Number</Label>
-              <div className="relative">
-                <Phone className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+            <div className='space-y-2'>
+              <Label htmlFor='phone'>Phone Number</Label>
+              <div className='relative'>
+                <Phone className='absolute left-3 top-3 h-4 w-4 text-muted-foreground' />
                 <Input
-                  id="phone"
-                  name="phone"
-                  type="tel"
-                  placeholder="080xxxxxxxx"
+                  id='phone'
+                  name='phone'
+                  type='tel'
+                  placeholder='080xxxxxxxx'
                   value={formData.phone}
                   onChange={handleInputChange}
-                  className="pl-10"
+                  className='pl-10'
                   required
                 />
               </div>
             </div>
-            
+
             {/* Password */}
-            <div className="space-y-2">
-              <Label htmlFor="password">Password</Label>
-              <div className="relative">
-                <Lock className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+            <div className='space-y-2'>
+              <Label htmlFor='password'>Password</Label>
+              <div className='relative'>
+                <Lock className='absolute left-3 top-3 h-4 w-4 text-muted-foreground' />
                 <Input
-                  id="password"
-                  name="password"
-                  type={showPassword ? "text" : "password"}
-                  placeholder="Create a strong password"
+                  id='password'
+                  name='password'
+                  type={showPassword ? 'text' : 'password'}
+                  placeholder='Create a strong password'
                   value={formData.password}
                   onChange={handleInputChange}
-                  className="pl-10 pr-10"
+                  className='pl-10 pr-10'
                   required
                 />
                 <button
-                  type="button"
+                  type='button'
                   onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-3 top-3 text-muted-foreground hover:text-foreground"
+                  className='absolute right-3 top-3 text-muted-foreground hover:text-foreground'
                 >
-                  {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                  {showPassword ? (
+                    <EyeOff className='h-4 w-4' />
+                  ) : (
+                    <Eye className='h-4 w-4' />
+                  )}
                 </button>
               </div>
             </div>
-            
+
             {/* Confirm Password */}
-            <div className="space-y-2">
-              <Label htmlFor="confirmPassword">Confirm Password</Label>
-              <div className="relative">
-                <Lock className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+            <div className='space-y-2'>
+              <Label htmlFor='confirmPassword'>Confirm Password</Label>
+              <div className='relative'>
+                <Lock className='absolute left-3 top-3 h-4 w-4 text-muted-foreground' />
                 <Input
-                  id="confirmPassword"
-                  name="confirmPassword"
-                  type={showConfirmPassword ? "text" : "password"}
-                  placeholder="Confirm your password"
+                  id='confirmPassword'
+                  name='confirmPassword'
+                  type={showConfirmPassword ? 'text' : 'password'}
+                  placeholder='Confirm your password'
                   value={formData.confirmPassword}
                   onChange={handleInputChange}
-                  className="pl-10 pr-10"
+                  className='pl-10 pr-10'
                   required
                 />
                 <button
-                  type="button"
+                  type='button'
                   onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                  className="absolute right-3 top-3 text-muted-foreground hover:text-foreground"
+                  className='absolute right-3 top-3 text-muted-foreground hover:text-foreground'
                 >
-                  {showConfirmPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                  {showConfirmPassword ? (
+                    <EyeOff className='h-4 w-4' />
+                  ) : (
+                    <Eye className='h-4 w-4' />
+                  )}
                 </button>
               </div>
             </div>
 
             {/* KYC Section */}
-            <div className="border-t pt-4 space-y-4">
-              <div className="text-center">
-                <Label className="text-lg font-semibold text-primary">Identity Verification (KYC)</Label>
-                <p className="text-sm text-muted-foreground mt-1">
-                  Your account will be pending approval until documents are verified
+            <div className='border-t pt-4 space-y-4'>
+              <div className='text-center'>
+                <Label className='text-lg font-semibold text-primary'>
+                  Identity Verification (KYC)
+                </Label>
+                <p className='text-sm text-muted-foreground mt-1'>
+                  Your account will be pending approval until documents are
+                  verified
                 </p>
               </div>
 
               {/* NIN */}
-              <div className="space-y-2">
-                <Label htmlFor="nin">National Identification Number (NIN)</Label>
-                <div className="relative">
-                  <CreditCard className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+              <div className='space-y-2'>
+                <Label htmlFor='nin'>
+                  National Identification Number (NIN)
+                </Label>
+                <div className='relative'>
+                  <CreditCard className='absolute left-3 top-3 h-4 w-4 text-muted-foreground' />
                   <Input
-                    id="nin"
-                    name="nin"
-                    placeholder="Enter your 11-digit NIN"
+                    id='nin'
+                    name='nin'
+                    placeholder='Enter your 11-digit NIN'
                     value={formData.nin}
                     onChange={handleInputChange}
-                    className="pl-10"
+                    className='pl-10'
                     maxLength={11}
-                    pattern="[0-9]{11}"
+                    pattern='[0-9]{11}'
                     required
                   />
                 </div>
               </div>
 
               {/* NIN Document Upload */}
-              <div className="space-y-2">
-                <Label htmlFor="ninDocument">NIN Document Upload</Label>
-                <div className="relative">
-                  <div className="flex items-center justify-center w-full">
+              <div className='space-y-2'>
+                <Label htmlFor='ninDocument'>NIN Document Upload</Label>
+                <div className='relative'>
+                  <div className='flex items-center justify-center w-full'>
                     <label
-                      htmlFor="ninDocument"
-                      className="flex flex-col items-center justify-center w-full h-32 border-2 border-dashed border-muted-foreground/25 rounded-lg cursor-pointer bg-muted/10 hover:bg-muted/20 transition-colors"
+                      htmlFor='ninDocument'
+                      className='flex flex-col items-center justify-center w-full h-32 border-2 border-dashed border-muted-foreground/25 rounded-lg cursor-pointer bg-muted/10 hover:bg-muted/20 transition-colors'
                     >
-                      <div className="flex flex-col items-center justify-center pt-5 pb-6">
-                        <Upload className="w-8 h-8 mb-2 text-muted-foreground" />
-                        <p className="mb-2 text-sm text-muted-foreground">
-                          <span className="font-semibold">Click to upload</span> NIN document
+                      <div className='flex flex-col items-center justify-center pt-5 pb-6'>
+                        <Upload className='w-8 h-8 mb-2 text-muted-foreground' />
+                        <p className='mb-2 text-sm text-muted-foreground'>
+                          <span className='font-semibold'>Click to upload</span>{' '}
+                          NIN document
                         </p>
-                        <p className="text-xs text-muted-foreground">PNG, JPG or PDF (MAX. 5MB)</p>
+                        <p className='text-xs text-muted-foreground'>
+                          PNG, JPG or PDF (MAX. 5MB)
+                        </p>
                         {formData.ninFile && (
-                          <p className="text-xs text-primary mt-2 font-medium">
+                          <p className='text-xs text-primary mt-2 font-medium'>
                             Selected: {formData.ninFile.name}
                           </p>
                         )}
                       </div>
                       <input
-                        id="ninDocument"
-                        type="file"
-                        className="hidden"
-                        accept=".jpg,.jpeg,.png,.pdf"
+                        id='ninDocument'
+                        type='file'
+                        className='hidden'
+                        accept='.jpg,.jpeg,.png,.pdf'
                         onChange={(e) => handleFileChange(e, 'nin')}
                         required
                       />
@@ -264,31 +360,34 @@ const Register = () => {
               </div>
 
               {/* Passport Upload */}
-              <div className="space-y-2">
-                <Label htmlFor="passport">International Passport</Label>
-                <div className="relative">
-                  <div className="flex items-center justify-center w-full">
+              <div className='space-y-2'>
+                <Label htmlFor='passport'>International Passport</Label>
+                <div className='relative'>
+                  <div className='flex items-center justify-center w-full'>
                     <label
-                      htmlFor="passport"
-                      className="flex flex-col items-center justify-center w-full h-32 border-2 border-dashed border-muted-foreground/25 rounded-lg cursor-pointer bg-muted/10 hover:bg-muted/20 transition-colors"
+                      htmlFor='passport'
+                      className='flex flex-col items-center justify-center w-full h-32 border-2 border-dashed border-muted-foreground/25 rounded-lg cursor-pointer bg-muted/10 hover:bg-muted/20 transition-colors'
                     >
-                      <div className="flex flex-col items-center justify-center pt-5 pb-6">
-                        <Upload className="w-8 h-8 mb-2 text-muted-foreground" />
-                        <p className="mb-2 text-sm text-muted-foreground">
-                          <span className="font-semibold">Click to upload</span> passport photo
+                      <div className='flex flex-col items-center justify-center pt-5 pb-6'>
+                        <Upload className='w-8 h-8 mb-2 text-muted-foreground' />
+                        <p className='mb-2 text-sm text-muted-foreground'>
+                          <span className='font-semibold'>Click to upload</span>{' '}
+                          passport photo
                         </p>
-                        <p className="text-xs text-muted-foreground">PNG, JPG or PDF (MAX. 5MB)</p>
+                        <p className='text-xs text-muted-foreground'>
+                          PNG, JPG or PDF (MAX. 5MB)
+                        </p>
                         {formData.passportFile && (
-                          <p className="text-xs text-primary mt-2 font-medium">
+                          <p className='text-xs text-primary mt-2 font-medium'>
                             Selected: {formData.passportFile.name}
                           </p>
                         )}
                       </div>
                       <input
-                        id="passport"
-                        type="file"
-                        className="hidden"
-                        accept=".jpg,.jpeg,.png,.pdf"
+                        id='passport'
+                        type='file'
+                        className='hidden'
+                        accept='.jpg,.jpeg,.png,.pdf'
                         onChange={(e) => handleFileChange(e, 'passport')}
                         required
                       />
@@ -298,15 +397,25 @@ const Register = () => {
               </div>
             </div>
           </CardContent>
-          
-          <CardFooter className="flex flex-col space-y-4">
-            <Button type="submit" className="w-full">
-              Create Account
+
+          <CardFooter className='flex flex-col space-y-4'>
+            <Button type='submit' className='w-full' disabled={isLoading}>
+              {isLoading ? (
+                <>
+                  <Loader2 className='mr-2 h-4 w-4 animate-spin' />
+                  Creating Account...
+                </>
+              ) : (
+                'Create Account'
+              )}
             </Button>
-            
-            <div className="text-center text-sm text-muted-foreground">
-              Already have an account?{" "}
-              <Link to="/login" className="text-primary hover:underline font-medium">
+
+            <div className='text-center text-sm text-muted-foreground'>
+              Already have an account?{' '}
+              <Link
+                to='/login'
+                className='text-primary hover:underline font-medium'
+              >
                 Sign in here
               </Link>
             </div>

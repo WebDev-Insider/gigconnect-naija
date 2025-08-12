@@ -9,9 +9,12 @@ import { Badge } from '@/components/ui/badge';
 import { Label } from '@/components/ui/label';
 import { Upload, X, DollarSign, Clock, FileText, Tag } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import { apiClient } from '@/lib/api';
+import { useNavigate } from 'react-router-dom';
 
 const JobPosting = () => {
   const { toast } = useToast();
+  const navigate = useNavigate();
   const [formData, setFormData] = useState({
     title: '',
     description: '',
@@ -83,7 +86,7 @@ const JobPosting = () => {
     }));
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
     if (!formData.title || !formData.description || !formData.category || !formData.budget) {
@@ -95,22 +98,39 @@ const JobPosting = () => {
       return;
     }
 
-    // Submit job posting logic here
-    toast({
-      title: "Success",
-      description: "Your job has been posted successfully! Freelancers will start bidding soon.",
-    });
-    
-    // Reset form
-    setFormData({
-      title: '',
-      description: '',
-      category: '',
-      budget: '',
-      deliveryTime: '',
-      skills: [],
-      attachments: []
-    });
+    try {
+      const payload = {
+        title: formData.title,
+        description: formData.description,
+        category: formData.category,
+        budget: Number(formData.budget),
+        deliveryTime: formData.deliveryTime || 'unspecified',
+        skills: formData.skills,
+        attachments: [],
+      };
+      const res = await apiClient.createProject(payload);
+      if (res.success) {
+        toast({
+          title: "Success",
+          description: "Your job has been posted successfully!",
+        });
+        // Reset form
+        setFormData({
+          title: '',
+          description: '',
+          category: '',
+          budget: '',
+          deliveryTime: '',
+          skills: [],
+          attachments: []
+        });
+        navigate('/client-dashboard');
+      } else {
+        toast({ title: 'Error', description: res.message || 'Failed to post job', variant: 'destructive' });
+      }
+    } catch (err) {
+      toast({ title: 'Error', description: err instanceof Error ? err.message : 'Failed to post job', variant: 'destructive' });
+    }
   };
 
   return (

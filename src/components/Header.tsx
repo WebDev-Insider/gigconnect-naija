@@ -11,11 +11,11 @@ import {
   DropdownMenuSeparator, 
   DropdownMenuTrigger 
 } from "@/components/ui/dropdown-menu";
+import { useAuth } from "@/contexts/AuthContext";
 
 const Header = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const [isLoggedIn, setIsLoggedIn] = useState(false); // Mock login state
-  const [userType, setUserType] = useState<'client' | 'freelancer' | 'admin'>('client'); // Mock user type
+  const { user, isAuthenticated, logout } = useAuth();
 
   const toggleMenu = () => {
     setIsMenuOpen(!isMenuOpen);
@@ -29,9 +29,9 @@ const Header = () => {
   ];
 
   const filteredLinks = navigationLinks.filter(link => {
-    if (link.requiresAuth && !isLoggedIn) return false;
-    if (link.clientOnly && userType !== 'client') return false;
-    if (link.freelancerOnly && userType !== 'freelancer') return false;
+    if (link.requiresAuth && !isAuthenticated) return false;
+    if (link.clientOnly && user?.role !== 'client') return false;
+    if (link.freelancerOnly && user?.role !== 'freelancer') return false;
     return true;
   });
 
@@ -77,7 +77,7 @@ const Header = () => {
 
           {/* Desktop CTA */}
           <div className="hidden md:flex items-center space-x-4">
-            {isLoggedIn ? (
+            {isAuthenticated ? (
               <>
                 {/* Notifications */}
                 <Button variant="ghost" size="icon" className="relative">
@@ -99,7 +99,7 @@ const Header = () => {
                   </DropdownMenuTrigger>
                   <DropdownMenuContent align="end" className="w-56">
                     <DropdownMenuItem asChild>
-                      <Link to={userType === 'client' ? '/client-dashboard' : '/freelancer-dashboard'}>
+                      <Link to={user?.role === 'client' ? '/client-dashboard' : '/freelancer-dashboard'}>
                         Dashboard
                       </Link>
                     </DropdownMenuItem>
@@ -110,7 +110,7 @@ const Header = () => {
                     <DropdownMenuItem>Settings</DropdownMenuItem>
                     <DropdownMenuItem>Support</DropdownMenuItem>
                     <DropdownMenuSeparator />
-                    <DropdownMenuItem onClick={() => setIsLoggedIn(false)}>
+                    <DropdownMenuItem onClick={logout}>
                       Sign Out
                     </DropdownMenuItem>
                   </DropdownMenuContent>
@@ -170,10 +170,10 @@ const Header = () => {
               
               {/* Mobile Auth Buttons */}
               <div className="pt-4 border-t border-border/40 space-y-2">
-                {isLoggedIn ? (
+                {isAuthenticated ? (
                   <>
                     <Link
-                      to={userType === 'client' ? '/client-dashboard' : '/freelancer-dashboard'}
+                      to={user?.role === 'client' ? '/client-dashboard' : '/freelancer-dashboard'}
                       className="flex items-center gap-3 text-sm font-medium text-muted-foreground hover:text-foreground transition-colors py-2"
                       onClick={() => setIsMenuOpen(false)}
                     >
@@ -189,7 +189,7 @@ const Header = () => {
                     </Link>
                     <button
                       onClick={() => {
-                        setIsLoggedIn(false);
+                        logout();
                         setIsMenuOpen(false);
                       }}
                       className="flex items-center gap-3 text-sm font-medium text-muted-foreground hover:text-foreground transition-colors py-2 w-full text-left"

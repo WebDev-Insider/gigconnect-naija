@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { Link } from 'react-router-dom';
 import Header from '@/components/Header';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -6,26 +7,9 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Star, Heart, Search, Filter, Clock, DollarSign, User } from 'lucide-react';
-
-interface Gig {
-  id: string;
-  title: string;
-  description: string;
-  price: number;
-  deliveryTime: string;
-  category: string;
-  freelancer: {
-    name: string;
-    rating: number;
-    reviews: number;
-    avatar?: string;
-    isOnline: boolean;
-  };
-  images: string[];
-  tags: string[];
-  isFavorite: boolean;
-}
+import { Star, Heart, Search, Filter, Clock, DollarSign, User, Loader2 } from 'lucide-react';
+import { useGigs, type Gig } from '@/hooks/useGigs';
+import { useAuth } from '@/contexts/AuthContext';
 
 const GigBrowsing = () => {
   const [searchQuery, setSearchQuery] = useState('');
@@ -33,61 +17,10 @@ const GigBrowsing = () => {
   const [priceRange, setPriceRange] = useState('all');
   const [deliveryTime, setDeliveryTime] = useState('all');
   const [sortBy, setSortBy] = useState('relevance');
+  const [filters, setFilters] = useState({});
 
-  // Mock data - would come from API
-  const gigs: Gig[] = [
-    {
-      id: '1',
-      title: 'I will design a modern logo for your business',
-      description: 'Professional logo design with unlimited revisions. Get your brand identity designed by an experienced graphic designer.',
-      price: 15000,
-      deliveryTime: '3 days',
-      category: 'Graphics & Design',
-      freelancer: {
-        name: 'Adebayo Johnson',
-        rating: 4.9,
-        reviews: 127,
-        isOnline: true
-      },
-      images: ['/placeholder.svg'],
-      tags: ['logo', 'branding', 'design'],
-      isFavorite: false
-    },
-    {
-      id: '2',
-      title: 'I will type your documents accurately and fast',
-      description: 'Professional typing services for documents, assignments, and business materials. Fast delivery guaranteed.',
-      price: 5000,
-      deliveryTime: '1 day',
-      category: 'Writing & Translation',
-      freelancer: {
-        name: 'Blessing Okafor',
-        rating: 4.8,
-        reviews: 89,
-        isOnline: false
-      },
-      images: ['/placeholder.svg'],
-      tags: ['typing', 'documents', 'fast'],
-      isFavorite: true
-    },
-    {
-      id: '3',
-      title: 'I will complete your assignments and research',
-      description: 'Academic writing and research assistance for students. High-quality work with proper citations.',
-      price: 12000,
-      deliveryTime: '2 days',
-      category: 'Academic Help',
-      freelancer: {
-        name: 'Ibrahim Hassan',
-        rating: 4.7,
-        reviews: 156,
-        isOnline: true
-      },
-      images: ['/placeholder.svg'],
-      tags: ['academic', 'research', 'writing'],
-      isFavorite: false
-    }
-  ];
+  const { user } = useAuth();
+  const { gigs, isLoading, error } = useGigs(filters);
 
   const categories = [
     'All Categories',
@@ -104,12 +37,47 @@ const GigBrowsing = () => {
     console.log('Toggle favorite for gig:', gigId);
   };
 
+  // Apply filters to gigs
   const filteredGigs = gigs.filter(gig => {
     const matchesSearch = gig.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
                          gig.description.toLowerCase().includes(searchQuery.toLowerCase());
     const matchesCategory = selectedCategory === 'all' || gig.category.toLowerCase() === selectedCategory.toLowerCase();
     return matchesSearch && matchesCategory;
   });
+
+  // Show loading state
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-background">
+        <Header />
+        <main className="container mx-auto px-4 py-8">
+          <div className="flex items-center justify-center min-h-[400px]">
+            <div className="flex flex-col items-center space-y-4">
+              <Loader2 className="h-8 w-8 animate-spin text-primary" />
+              <p className="text-muted-foreground">Loading gigs...</p>
+            </div>
+          </div>
+        </main>
+      </div>
+    );
+  }
+
+  // Show error state
+  if (error) {
+    return (
+      <div className="min-h-screen bg-background">
+        <Header />
+        <main className="container mx-auto px-4 py-8">
+          <div className="flex items-center justify-center min-h-[400px]">
+            <div className="flex flex-col items-center space-y-4">
+              <p className="text-destructive">Error loading gigs: {error.message}</p>
+              <Button onClick={() => window.location.reload()}>Try Again</Button>
+            </div>
+          </div>
+        </main>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-background">
@@ -205,76 +173,66 @@ const GigBrowsing = () => {
           {/* Gigs Grid */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
             {filteredGigs.map((gig) => (
-              <Card key={gig.id} className="group hover:shadow-lg transition-shadow cursor-pointer">
-                <CardHeader className="p-0">
-                  <div className="relative">
-                    <img
-                      src={gig.images[0]}
-                      alt={gig.title}
-                      className="w-full h-48 object-cover rounded-t-lg"
-                    />
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      className="absolute top-2 right-2 bg-white/80 hover:bg-white"
-                      onClick={() => toggleFavorite(gig.id)}
-                    >
-                      <Heart 
-                        className={`h-4 w-4 ${gig.isFavorite ? 'fill-red-500 text-red-500' : 'text-gray-600'}`}
+              <Link key={gig.id} to={`/gig/${gig.id}`}>
+                <Card className="group hover:shadow-lg transition-shadow cursor-pointer">
+                  <CardHeader className="p-0">
+                    <div className="relative">
+                      <img
+                        src={gig.portfolio[0] || '/placeholder.svg'}
+                        alt={gig.title}
+                        className="w-full h-48 object-cover rounded-t-lg"
                       />
-                    </Button>
-                  </div>
-                </CardHeader>
-                
-                <CardContent className="p-4">
-                  <div className="mb-3">
-                    <Badge variant="secondary" className="text-xs">
-                      {gig.category}
-                    </Badge>
-                  </div>
-                  
-                  <h3 className="font-semibold text-sm mb-2 line-clamp-2 group-hover:text-primary">
-                    {gig.title}
-                  </h3>
-                  
-                  <p className="text-xs text-muted-foreground mb-3 line-clamp-2">
-                    {gig.description}
-                  </p>
-                  
-                  {/* Freelancer Info */}
-                  <div className="flex items-center gap-2 mb-3">
-                    <Avatar className="h-6 w-6">
-                      <AvatarFallback className="text-xs">
-                        {gig.freelancer.name.charAt(0)}
-                      </AvatarFallback>
-                    </Avatar>
-                    <span className="text-xs text-muted-foreground">
-                      {gig.freelancer.name}
-                    </span>
-                    <div className={`w-2 h-2 rounded-full ${gig.freelancer.isOnline ? 'bg-green-500' : 'bg-gray-400'}`} />
-                  </div>
-                  
-                  {/* Rating */}
-                  <div className="flex items-center gap-1 mb-3">
-                    <Star className="h-3 w-3 fill-yellow-400 text-yellow-400" />
-                    <span className="text-xs font-medium">{gig.freelancer.rating}</span>
-                    <span className="text-xs text-muted-foreground">
-                      ({gig.freelancer.reviews})
-                    </span>
-                  </div>
-                  
-                  {/* Price and Delivery */}
-                  <div className="flex items-center justify-between text-xs">
-                    <div className="flex items-center gap-1">
-                      <Clock className="h-3 w-3 text-muted-foreground" />
-                      <span>{gig.deliveryTime}</span>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="absolute top-2 right-2 bg-white/80 hover:bg-white"
+                        onClick={(e) => {
+                          e.preventDefault();
+                          toggleFavorite(gig.id);
+                        }}
+                      >
+                        <Heart className="h-4 w-4 text-gray-600 hover:fill-red-500 hover:text-red-500" />
+                      </Button>
                     </div>
-                    <div className="flex items-center gap-1 font-semibold">
-                      <span>₦{gig.price.toLocaleString()}</span>
+                  </CardHeader>
+                  
+                  <CardContent className="p-4">
+                    <div className="mb-3">
+                      <Badge variant="secondary" className="text-xs">
+                        {gig.category}
+                      </Badge>
                     </div>
-                  </div>
-                </CardContent>
-              </Card>
+                    
+                    <h3 className="font-semibold text-sm mb-2 line-clamp-2 group-hover:text-primary">
+                      {gig.title}
+                    </h3>
+                    
+                    <p className="text-xs text-muted-foreground mb-3 line-clamp-2">
+                      {gig.description}
+                    </p>
+                    
+                    {/* Tags */}
+                    <div className="flex flex-wrap gap-1 mb-3">
+                      {gig.tags.slice(0, 3).map((tag, index) => (
+                        <Badge key={index} variant="outline" className="text-xs">
+                          {tag}
+                        </Badge>
+                      ))}
+                    </div>
+                    
+                    {/* Price and Delivery */}
+                    <div className="flex items-center justify-between text-xs">
+                      <div className="flex items-center gap-1">
+                        <Clock className="h-3 w-3 text-muted-foreground" />
+                        <span>{gig.deliveryTime} days</span>
+                      </div>
+                      <div className="flex items-center gap-1 font-semibold">
+                        <span>₦{gig.price.toLocaleString()}</span>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              </Link>
             ))}
           </div>
 

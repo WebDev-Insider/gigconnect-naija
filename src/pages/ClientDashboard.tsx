@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -16,28 +16,14 @@ import {
   MessageSquare,
   Wallet
 } from "lucide-react";
+import { useNavigate } from "react-router-dom";
+import { apiClient } from "@/lib/api";
+import { useAuth } from "@/contexts/AuthContext";
 
 const ClientDashboard = () => {
-  const [activeProjects] = useState([
-    {
-      id: 1,
-      title: "Mobile App Development",
-      freelancer: "John Doe",
-      budget: "₦500,000",
-      deadline: "Dec 30, 2024",
-      status: "In Progress",
-      progress: 65
-    },
-    {
-      id: 2,
-      title: "Logo Design",
-      freelancer: "Sarah Smith",
-      budget: "₦75,000",
-      deadline: "Dec 15, 2024",
-      status: "Review",
-      progress: 90
-    }
-  ]);
+  const navigate = useNavigate();
+  const { user } = useAuth();
+  const [activeProjects, setActiveProjects] = useState<any[]>([]);
 
   const [proposals] = useState([
     {
@@ -58,6 +44,30 @@ const ClientDashboard = () => {
     }
   ]);
 
+  useEffect(() => {
+    const fetchProjects = async () => {
+      try {
+        const res = await apiClient.getProjects(user ? { clientId: user.id } : undefined);
+        if (res.success && res.data) {
+          // Map to UI fields; backend stores budget as number
+          const projects = (res.data as any[]).map((p: any) => ({
+            id: p.id,
+            title: p.title,
+            freelancer: p.assigned_freelancer_name || 'Unassigned',
+            budget: `₦${Number(p.budget).toLocaleString()}`,
+            deadline: p.delivery_time,
+            status: (p.status || 'Open').replace('_', ' '),
+            progress: 0,
+          }));
+          setActiveProjects(projects);
+        }
+      } catch {
+        // ignore for now
+      }
+    };
+    fetchProjects();
+  }, [user]);
+
   return (
     <div className="min-h-screen bg-gradient-subtle p-6">
       <div className="max-w-7xl mx-auto space-y-6">
@@ -67,10 +77,16 @@ const ClientDashboard = () => {
             <h1 className="text-3xl font-bold text-primary">Client Dashboard</h1>
             <p className="text-muted-foreground">Manage your projects and find talented freelancers</p>
           </div>
-          <Button className="flex items-center gap-2">
-            <Plus className="h-4 w-4" />
-            Post New Project
-          </Button>
+          <div className="flex gap-2">
+            <Button variant="outline" className="flex items-center gap-2" onClick={() => navigate('/wallet-payments')}>
+              <Wallet className="h-4 w-4" />
+              Wallet & Payments
+            </Button>
+            <Button className="flex items-center gap-2" onClick={() => navigate('/post-job')}>
+              <Plus className="h-4 w-4" />
+              Post New Project
+            </Button>
+          </div>
         </div>
 
         {/* Stats Cards */}
@@ -82,7 +98,7 @@ const ClientDashboard = () => {
                   <FileText className="h-6 w-6 text-primary" />
                 </div>
                 <div>
-                  <p className="text-2xl font-bold">12</p>
+                  <p className="text-2xl font-bold">{activeProjects.length}</p>
                   <p className="text-sm text-muted-foreground">Active Projects</p>
                 </div>
               </div>
@@ -134,11 +150,10 @@ const ClientDashboard = () => {
 
         {/* Main Content */}
         <Tabs defaultValue="projects" className="w-full">
-          <TabsList className="grid w-full grid-cols-4">
+          <TabsList className="grid w-full grid-cols-3">
             <TabsTrigger value="projects">Active Projects</TabsTrigger>
             <TabsTrigger value="proposals">Proposals</TabsTrigger>
             <TabsTrigger value="messages">Messages</TabsTrigger>
-            <TabsTrigger value="wallet">Wallet</TabsTrigger>
           </TabsList>
 
           <TabsContent value="projects" className="space-y-6">
@@ -244,28 +259,7 @@ const ClientDashboard = () => {
             </Card>
           </TabsContent>
 
-          <TabsContent value="wallet" className="space-y-6">
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Wallet className="h-5 w-5" />
-                  Wallet Balance
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-4">
-                  <div className="text-center space-y-2">
-                    <p className="text-3xl font-bold text-primary">₦150,000</p>
-                    <p className="text-muted-foreground">Available Balance</p>
-                  </div>
-                  <div className="flex gap-4">
-                    <Button className="flex-1">Add Funds</Button>
-                    <Button variant="outline" className="flex-1">Transaction History</Button>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          </TabsContent>
+          
         </Tabs>
       </div>
     </div>

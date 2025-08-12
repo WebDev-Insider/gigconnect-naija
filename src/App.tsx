@@ -3,6 +3,8 @@ import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { AuthProvider } from "@/contexts/AuthContext";
+import { ProtectedRoute, ClientRoute, FreelancerRoute, AdminRoute, ModeratorRoute } from "@/components/ProtectedRoute";
 import Index from "./pages/Index";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
@@ -21,28 +23,30 @@ const queryClient = new QueryClient();
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
-    <TooltipProvider>
-      <Toaster />
-      <Sonner />
-      <BrowserRouter>
-        <Routes>
-          <Route path="/" element={<Index />} />
-          <Route path="/login" element={<Login />} />
-          <Route path="/register" element={<Register />} />
-          <Route path="/client-dashboard" element={<ClientDashboard />} />
-          <Route path="/freelancer-dashboard" element={<FreelancerDashboard />} />
-          <Route path="/admin-dashboard" element={<AdminDashboard />} />
-          <Route path="/gig-management" element={<GigManagement />} />
-          <Route path="/wallet-payments" element={<WalletPayments />} />
-          <Route path="/moderator-dashboard" element={<ModeratorDashboard />} />
-          <Route path="/chat" element={<ChatPage />} />
-          <Route path="/browse-gigs" element={<GigBrowsing />} />
-          <Route path="/post-job" element={<JobPosting />} />
-          {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
-          <Route path="*" element={<NotFound />} />
-        </Routes>
-      </BrowserRouter>
-    </TooltipProvider>
+    <AuthProvider>
+      <TooltipProvider>
+        <Toaster />
+        <Sonner />
+        <BrowserRouter>
+          <Routes>
+            <Route path="/" element={<Index />} />
+            <Route path="/login" element={<Login />} />
+            <Route path="/register" element={<Register />} />
+            <Route path="/client-dashboard" element={<ClientRoute><ClientDashboard /></ClientRoute>} />
+            <Route path="/freelancer-dashboard" element={<FreelancerRoute><FreelancerDashboard /></FreelancerRoute>} />
+            <Route path="/admin-dashboard" element={<AdminRoute><AdminDashboard /></AdminRoute>} />
+            <Route path="/gig-management" element={<FreelancerRoute><GigManagement /></FreelancerRoute>} />
+            <Route path="/wallet-payments" element={<ProtectedRoute><WalletPayments /></ProtectedRoute>} />
+            <Route path="/moderator-dashboard" element={<ModeratorRoute><ModeratorDashboard /></ModeratorRoute>} />
+            <Route path="/chat" element={<ProtectedRoute><ChatPage /></ProtectedRoute>} />
+            <Route path="/browse-gigs" element={<GigBrowsing />} />
+            <Route path="/post-job" element={<ClientRoute><JobPosting /></ClientRoute>} />
+            {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
+            <Route path="*" element={<NotFound />} />
+          </Routes>
+        </BrowserRouter>
+      </TooltipProvider>
+    </AuthProvider>
   </QueryClientProvider>
 );
 

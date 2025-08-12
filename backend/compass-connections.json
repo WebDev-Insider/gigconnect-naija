@@ -1,0 +1,29 @@
+{
+  "type": "Compass Connections",
+  "version": {
+    "$numberInt": "1"
+  },
+  "connections": [
+    {
+      "id": "8fa97cfb-8991-4c2f-b3fc-f0261b93e10b",
+      "lastUsed": {
+        "$date": {
+          "$numberLong": "1754940793704"
+        }
+      },
+      "favorite": {
+        "name": "GigConnect  "
+      },
+      "savedConnectionType": "recent",
+      "connectionOptions": {
+        "connectionString": "mongodb+srv://jadeedgetech:xJhXLW9mlD8AcVcN@cluster0.sieeblg.mongodb.net/",
+        "oidc": {
+          "serializedState": "eyJvaWRjUGx1Z2luU3RhdGVWZXJzaW9uIjoxLCJzdGF0ZSI6W119"
+        }
+      }
+    }
+  ]
+}
+
+
+
