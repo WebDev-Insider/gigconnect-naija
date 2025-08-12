@@ -63,6 +63,31 @@ export const ChatInterface: React.FC<ChatInterfaceProps> = ({
   const [showPaymentModal, setShowPaymentModal] = useState(false);
   const [paymentProof, setPaymentProof] = useState<File | null>(null);
 
+  React.useEffect(() => {
+    const fetchMessages = async () => {
+      if (!chatId) return;
+      try {
+        const { apiClient } = await import('@/lib/api');
+        const res = await apiClient.getChatMessages(chatId);
+        if (res.success && Array.isArray(res.data)) {
+          const mapped: Message[] = (res.data as any[]).map((m) => ({
+            id: m.id || m._id || String(m.created_at || Date.now()),
+            sender: (m.sender_id_role === 'client' ? 'client' : m.sender_role === 'freelancer' ? 'freelancer' : (userRole === 'client' ? 'freelancer' : 'client')) as 'client' | 'freelancer',
+            content: m.content,
+            timestamp: new Date(m.created_at || Date.now()),
+            type: (m.type || 'text') as any,
+            attachments: m.attachments || (m.attachment_ref ? [m.attachment_ref] : undefined),
+          }));
+          setMessages(mapped);
+        }
+      } catch (e) {
+        // ignore fetch errors in UI
+      }
+    };
+    fetchMessages();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [chatId]);
+
   const sendMessage = () => {
     if (newMessage.trim()) {
       const message: Message = {
