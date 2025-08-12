@@ -84,9 +84,29 @@ export const ChatInterface: React.FC<ChatInterfaceProps> = ({
     }
   };
 
+  const fileToBase64 = (file: File): Promise<string> => {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => resolve(reader.result as string);
+      reader.onerror = (e) => reject(e);
+      reader.readAsDataURL(file);
+    });
+  };
+
   const submitPaymentProof = async () => {
     if (paymentProof) {
       try {
+        // Upload to Cloudinary via backend
+        let uploadedUrl: string | undefined;
+        try {
+          const base64 = await fileToBase64(paymentProof);
+          const { apiClient } = await import('@/lib/api');
+          const uploadRes = await apiClient.uploadFile(base64, 'payments');
+          if (uploadRes.success && (uploadRes as any).data?.url) {
+            uploadedUrl = (uploadRes as any).data.url;
+          }
+        } catch {}
+
         // Optionally initiate payment to get a reference
         if (orderId) {
           try {
@@ -100,8 +120,8 @@ export const ChatInterface: React.FC<ChatInterfaceProps> = ({
           const { apiClient } = await import('@/lib/api');
           await apiClient.sendMessage(chatId, {
             type: 'payment',
-            content: `Payment proof uploaded: ${paymentProof.name}`,
-            attachments: [paymentProof.name],
+            content: uploadedUrl ? `Payment proof: ${uploadedUrl}` : `Payment proof uploaded: ${paymentProof.name}`,
+            attachments: uploadedUrl ? [uploadedUrl] : [paymentProof.name],
             orderId,
           });
         }
@@ -109,10 +129,10 @@ export const ChatInterface: React.FC<ChatInterfaceProps> = ({
         const message: Message = {
           id: Date.now().toString(),
           sender: userRole,
-          content: `Payment proof uploaded: ${paymentProof.name}`,
+          content: uploadedUrl ? `Payment proof: ${uploadedUrl}` : `Payment proof uploaded: ${paymentProof.name}`,
           timestamp: new Date(),
           type: 'payment',
-          attachments: [paymentProof.name]
+          attachments: uploadedUrl ? [uploadedUrl] : [paymentProof.name]
         };
         setMessages([...messages, message]);
         setShowPaymentModal(false);

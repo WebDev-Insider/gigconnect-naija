@@ -29,6 +29,7 @@ import paymentRoutes from './routes/payments';
 import chatRoutes from './routes/chat';
 import adminRoutes from './routes/admin';
 // import webhookRoutes from './routes/webhooks';
+import uploadRoutes from './routes/uploads';
 
 // Import services
 // import { setupSocketHandlers } from './services/socketService';
@@ -114,6 +115,7 @@ app.use(`/api/${API_VERSION}/orders`, orderRoutes);
 app.use(`/api/${API_VERSION}/payments`, paymentRoutes);
 app.use(`/api/${API_VERSION}/chat`, chatRoutes);
 app.use(`/api/${API_VERSION}/admin`, adminRoutes);
+app.use(`/api/${API_VERSION}/uploads`, uploadRoutes);
 // app.use(`/api/${API_VERSION}/webhooks`, webhookRoutes);
 
 // Root endpoint
