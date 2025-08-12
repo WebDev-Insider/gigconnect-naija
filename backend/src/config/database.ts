@@ -6,10 +6,16 @@ import dotenv from 'dotenv';
 dotenv.config();
 
 // Supabase Configuration
-export const supabase = createClient(
-  process.env.SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!
-);
+const supabaseUrl = process.env.SUPABASE_URL;
+const supabaseServiceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+
+if (!supabaseUrl || !supabaseServiceRoleKey) {
+  throw new Error(
+    'Missing Supabase configuration. Ensure SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY are set in the environment.'
+  );
+}
+
+export const supabase = createClient(supabaseUrl, supabaseServiceRoleKey);
 
 // MongoDB Configuration
 let mongoClient: MongoClient;

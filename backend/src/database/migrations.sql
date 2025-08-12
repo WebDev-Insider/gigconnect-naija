@@ -257,6 +257,9 @@ CREATE POLICY "Users can view their own profile" ON users
 CREATE POLICY "Users can update their own profile" ON users
   FOR UPDATE USING (auth.uid()::text = id::text);
 
+CREATE POLICY "Users can create their own profile" ON users
+  FOR INSERT WITH CHECK (auth.uid()::text = id::text);
+
 CREATE POLICY "Admins can manage all users" ON users
   FOR ALL USING ((auth.jwt() -> 'user_metadata' ->> 'role') = 'admin')
   WITH CHECK ((auth.jwt() -> 'user_metadata' ->> 'role') = 'admin');
