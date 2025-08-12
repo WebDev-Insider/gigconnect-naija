@@ -378,6 +378,13 @@ class ApiClient {
     return this.request('/chat/rooms');
   }
 
+  async createChatRoom(participantId: string, orderId?: string): Promise<ApiResponse<any>> {
+    return this.request('/chat/rooms', {
+      method: 'POST',
+      body: JSON.stringify({ participantId, orderId }),
+    });
+  }
+
   async getChatMessages(
     chatId: string,
     params?: any
