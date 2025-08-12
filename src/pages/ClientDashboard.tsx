@@ -137,7 +137,7 @@ const ClientDashboard = () => {
                   <DollarSign className="h-6 w-6 text-purple-500" />
                 </div>
                 <div>
-                  <p className="text-2xl font-bold">₦2.5M</p>
+                  <p className="text-2xl font-bold">—</p>
                   <p className="text-sm text-muted-foreground">Total Spent</p>
                 </div>
               </div>

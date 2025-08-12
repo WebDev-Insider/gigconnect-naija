@@ -316,6 +316,14 @@ class ApiClient {
     });
   }
 
+  // File uploads (Cloudinary via backend)
+  async uploadFile(base64Data: string, folder?: string): Promise<ApiResponse<{ url: string; public_id: string }>> {
+    return this.request('/uploads', {
+      method: 'POST',
+      body: JSON.stringify({ file: base64Data, folder }),
+    });
+  }
+
   async verifyPayment(reference: string): Promise<ApiResponse<any>> {
     return this.request('/payments/verify', {
       method: 'POST',
