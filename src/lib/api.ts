@@ -73,7 +73,7 @@ class ApiClient {
         }
 
         const errorData = await response.json().catch(() => ({}));
-        throw new Error(errorData.message || `HTTP ${response.status}`);
+        throw new Error(errorData.message || errorData.error || `HTTP ${response.status}`);
       }
 
       const data = await response.json();
@@ -113,9 +113,21 @@ class ApiClient {
     role: 'client' | 'freelancer';
     phone?: string;
   }): Promise<ApiResponse<{ user: any }>> {
+    const { email, password, firstName, lastName, role } = userData;
+    // Ensure phone is E.164-like: remove spaces and trim
+    const normalizedPhone = userData.phone?.replace(/\s+/g, '').trim();
+
+    const payload = {
+      email,
+      password,
+      full_name: `${firstName} ${lastName}`.trim(),
+      phone: normalizedPhone,
+      role,
+    } as any;
+
     return this.request('/auth/signup', {
       method: 'POST',
-      body: JSON.stringify(userData),
+      body: JSON.stringify(payload),
     });
   }
 
