@@ -257,12 +257,9 @@ CREATE POLICY "Users can view their own profile" ON users
 CREATE POLICY "Users can update their own profile" ON users
   FOR UPDATE USING (auth.uid()::text = id::text);
 
-CREATE POLICY "Admins can view all users" ON users
-  FOR ALL USING (
-    EXISTS (
-      SELECT 1 FROM users WHERE id = auth.uid()::uuid AND role = 'admin'
-    )
-  );
+CREATE POLICY "Admins can manage all users" ON users
+  FOR ALL USING ((auth.jwt() -> 'user_metadata' ->> 'role') = 'admin')
+  WITH CHECK ((auth.jwt() -> 'user_metadata' ->> 'role') = 'admin');
 
 -- Freelancers RLS Policies
 CREATE POLICY "Freelancers can view their own profile" ON freelancers
@@ -289,11 +286,8 @@ CREATE POLICY "Clients can update their own profile" ON clients
   FOR UPDATE USING (user_id = auth.uid()::uuid);
 
 CREATE POLICY "Admins can manage all clients" ON clients
-  FOR ALL USING (
-    EXISTS (
-      SELECT 1 FROM users WHERE id = auth.uid()::uuid AND role = 'admin'
-    )
-  );
+  FOR ALL USING ((auth.jwt() -> 'user_metadata' ->> 'role') = 'admin')
+  WITH CHECK ((auth.jwt() -> 'user_metadata' ->> 'role') = 'admin');
 
 -- Gigs RLS Policies
 CREATE POLICY "Anyone can view active gigs" ON gigs
@@ -304,14 +298,16 @@ CREATE POLICY "Freelancers can manage their own gigs" ON gigs
     freelancer_id IN (
       SELECT id FROM freelancers WHERE user_id = auth.uid()::uuid
     )
+  )
+  WITH CHECK (
+    freelancer_id IN (
+      SELECT id FROM freelancers WHERE user_id = auth.uid()::uuid
+    )
   );
 
 CREATE POLICY "Admins can manage all gigs" ON gigs
-  FOR ALL USING (
-    EXISTS (
-      SELECT 1 FROM users WHERE id = auth.uid()::uuid AND role = 'admin'
-    )
-  );
+  FOR ALL USING ((auth.jwt() -> 'user_metadata' ->> 'role') = 'admin')
+  WITH CHECK ((auth.jwt() -> 'user_metadata' ->> 'role') = 'admin');
 
 -- Orders RLS Policies
 CREATE POLICY "Users can view orders they're involved in" ON orders
@@ -326,11 +322,8 @@ CREATE POLICY "Clients can create orders" ON orders
   );
 
 CREATE POLICY "Admins can manage all orders" ON orders
-  FOR ALL USING (
-    EXISTS (
-      SELECT 1 FROM users WHERE id = auth.uid()::uuid AND role = 'admin'
-    )
-  );
+  FOR ALL USING ((auth.jwt() -> 'user_metadata' ->> 'role') = 'admin')
+  WITH CHECK ((auth.jwt() -> 'user_metadata' ->> 'role') = 'admin');
 
 -- Transactions RLS Policies
 CREATE POLICY "Users can view transactions for their orders" ON transactions
@@ -343,22 +336,15 @@ CREATE POLICY "Users can view transactions for their orders" ON transactions
   );
 
 CREATE POLICY "Admins can manage all transactions" ON transactions
-  FOR ALL USING (
-    EXISTS (
-      SELECT 1 FROM users WHERE id = auth.uid()::uuid AND role = 'admin'
-    )
-  );
+  FOR ALL USING ((auth.jwt() -> 'user_metadata' ->> 'role') = 'admin')
+  WITH CHECK ((auth.jwt() -> 'user_metadata' ->> 'role') = 'admin');
 
 -- Wallets RLS Policies
 CREATE POLICY "Users can view their own wallet" ON wallets
   FOR SELECT USING (user_id = auth.uid()::uuid);
 
 CREATE POLICY "Admins can view all wallets" ON wallets
-  FOR SELECT USING (
-    EXISTS (
-      SELECT 1 FROM users WHERE id = auth.uid()::uuid AND role = 'admin'
-    )
-  );
+  FOR SELECT USING ((auth.jwt() -> 'user_metadata' ->> 'role') = 'admin');
 
 -- Disputes RLS Policies
 CREATE POLICY "Users can view disputes they're involved in" ON disputes
@@ -381,11 +367,8 @@ CREATE POLICY "Users can create disputes for their orders" ON disputes
   );
 
 CREATE POLICY "Admins can manage all disputes" ON disputes
-  FOR ALL USING (
-    EXISTS (
-      SELECT 1 FROM users WHERE id = auth.uid()::uuid AND role = 'admin'
-    )
-  );
+  FOR ALL USING ((auth.jwt() -> 'user_metadata' ->> 'role') = 'admin')
+  WITH CHECK ((auth.jwt() -> 'user_metadata' ->> 'role') = 'admin');
 
 -- KYC Records RLS Policies
 CREATE POLICY "Users can view their own KYC record" ON kyc_records
@@ -403,11 +386,7 @@ CREATE POLICY "Admins can manage all KYC records" ON kyc_records
 
 -- Audit Logs RLS Policies
 CREATE POLICY "Admins can view all audit logs" ON audit_logs
-  FOR SELECT USING (
-    EXISTS (
-      SELECT 1 FROM users WHERE id = auth.uid()::uuid AND role = 'admin'
-    )
-  );
+  FOR SELECT USING ((auth.jwt() -> 'user_metadata' ->> 'role') = 'admin');
 
 -- Insert initial admin user (password should be changed after first login)
 INSERT INTO users (email, full_name, phone, role, status) VALUES
