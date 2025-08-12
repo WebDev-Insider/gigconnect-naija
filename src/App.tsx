@@ -12,7 +12,7 @@ import ClientDashboard from "./pages/ClientDashboard";
 import FreelancerDashboard from "./pages/FreelancerDashboard";
 import AdminDashboard from "./pages/AdminDashboard";
 import GigManagement from "./pages/GigManagement";
-import WalletPayments from "./pages/WalletPayments";
+// import WalletPayments from "./pages/WalletPayments";
 import ModeratorDashboard from "./pages/ModeratorDashboard";
 import ChatPage from "./pages/ChatPage";
 import GigBrowsing from "./pages/GigBrowsing";
@@ -36,7 +36,7 @@ const App = () => (
             <Route path="/freelancer-dashboard" element={<FreelancerRoute><FreelancerDashboard /></FreelancerRoute>} />
             <Route path="/admin-dashboard" element={<AdminRoute><AdminDashboard /></AdminRoute>} />
             <Route path="/gig-management" element={<FreelancerRoute><GigManagement /></FreelancerRoute>} />
-            <Route path="/wallet-payments" element={<ProtectedRoute><WalletPayments /></ProtectedRoute>} />
+            {/* WalletPayments removed: payments handled in chat */}
             <Route path="/moderator-dashboard" element={<ModeratorRoute><ModeratorDashboard /></ModeratorRoute>} />
             <Route path="/chat" element={<ProtectedRoute><ChatPage /></ProtectedRoute>} />
             <Route path="/browse-gigs" element={<GigBrowsing />} />

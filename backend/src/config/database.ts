@@ -6,17 +6,23 @@ import dotenv from 'dotenv';
 dotenv.config();
 
 // Supabase Configuration
-export const supabase = createClient(
-  process.env.SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!
-);
+const supabaseUrl = process.env.SUPABASE_URL;
+const supabaseServiceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+
+if (!supabaseUrl || !supabaseServiceRoleKey) {
+  throw new Error(
+    'Missing Supabase configuration. Ensure SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY are set in the environment.'
+  );
+}
+
+export const supabase = createClient(supabaseUrl, supabaseServiceRoleKey);
 
 // MongoDB Configuration
 let mongoClient: MongoClient;
 let mongoDb: Db;
 
 export const connectMongoDB = async (): Promise<Db> => {
-  if (mongoDb) return mongoDb;
+  if ((mongoDb as any)) return mongoDb;
 
   try {
     const mongoUri = process.env.MONGO_URI;
@@ -68,36 +74,26 @@ export const closeMongoDB = async (): Promise<void> => {
 };
 
 // Redis Configuration
-let redisClient: RedisClientType;
+let redisClient: RedisClientType | null;
 
-export const connectRedis = async (): Promise<RedisClientType> => {
+export const connectRedis = async (): Promise<RedisClientType | null> => {
   if (redisClient) return redisClient;
 
   try {
     const redisUrl = process.env.REDIS_URL;
     if (!redisUrl) {
       console.warn('⚠️  REDIS_URL not set, skipping Redis connection');
-      return null as any;
+      return null;
     }
 
     redisClient = createRedisClient({
       url: redisUrl,
       socket: {
         connectTimeout: 10000,
-        commandTimeout: 10000,
-      },
-      retry_strategy: (options) => {
-        if (options.total_retry_time > 1000 * 60 * 60) {
-          return new Error('Retry time exhausted');
-        }
-        if (options.attempt > 10) {
-          return undefined;
-        }
-        return Math.min(options.attempt * 100, 3000);
       },
     });
    
-    redisClient.on('error', (error) => {
+    redisClient.on('error', (error: unknown) => {
       console.error('❌ Redis connection error:', error);
     });
 
@@ -109,22 +105,21 @@ export const connectRedis = async (): Promise<RedisClientType> => {
     return redisClient;
   } catch (error) {
     console.error('❌ Redis connection error:', error);
-    // Don't throw error for Redis, just log it
     console.warn('⚠️  Redis connection failed, continuing without Redis');
-    return null as any;
+    return null;
   }
 };
 
-export const getRedis = (): RedisClientType => {
+export const getRedis = (): RedisClientType | null => {
   if (!redisClient) {
     console.warn('⚠️  Redis not connected, returning null');
-    return null as any;
+    return null;
   }
   return redisClient;
 };
 
 export const closeRedis = async (): Promise<void> => {
-  if (redisClient && redisClient.isOpen) {
+  if (redisClient && (redisClient as any).isOpen) {
     await redisClient.quit();
     console.log('✅ Redis connection closed');
   }
@@ -144,7 +139,7 @@ export const checkDatabaseHealth = async (): Promise<{
 
   try {
     // Check Supabase
-    const { data, error } = await supabase
+    const { error } = await supabase
       .from('users')
       .select('count')
       .limit(1);
@@ -165,8 +160,8 @@ export const checkDatabaseHealth = async (): Promise<{
   try {
     // Check Redis
     const redis = getRedis();
-    if (redis && redis.isOpen) {
-      await redis.ping();
+    if (redis && (redis as any).isOpen) {
+      await (redis as any).ping();
       health.redis = true;
     }
   } catch (error) {

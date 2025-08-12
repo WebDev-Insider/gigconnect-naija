@@ -104,10 +104,9 @@ const Header = () => {
                       </Link>
                     </DropdownMenuItem>
                     <DropdownMenuItem asChild>
-                      <Link to="/wallet-payments">Wallet & Payments</Link>
+                      <span className="text-muted-foreground">Settings</span>
                     </DropdownMenuItem>
                     <DropdownMenuSeparator />
-                    <DropdownMenuItem>Settings</DropdownMenuItem>
                     <DropdownMenuItem>Support</DropdownMenuItem>
                     <DropdownMenuSeparator />
                     <DropdownMenuItem onClick={logout}>
@@ -180,13 +179,7 @@ const Header = () => {
                       <User className="h-4 w-4" />
                       Dashboard
                     </Link>
-                    <Link
-                      to="/wallet-payments"
-                      className="flex items-center gap-3 text-sm font-medium text-muted-foreground hover:text-foreground transition-colors py-2"
-                      onClick={() => setIsMenuOpen(false)}
-                    >
-                      Wallet & Payments
-                    </Link>
+                    {/* Wallet & Payments removed; payments handled in chat */}
                     <button
                       onClick={() => {
                         logout();

@@ -78,10 +78,7 @@ const ClientDashboard = () => {
             <p className="text-muted-foreground">Manage your projects and find talented freelancers</p>
           </div>
           <div className="flex gap-2">
-            <Button variant="outline" className="flex items-center gap-2" onClick={() => navigate('/wallet-payments')}>
-              <Wallet className="h-4 w-4" />
-              Wallet & Payments
-            </Button>
+            {/* Payments handled in chat; wallet removed */}
             <Button className="flex items-center gap-2" onClick={() => navigate('/post-job')}>
               <Plus className="h-4 w-4" />
               Post New Project
@@ -187,10 +184,10 @@ const ClientDashboard = () => {
                         </div>
                       </div>
                       <div className="flex gap-2">
-                        <Button variant="outline" size="sm">
+                        {/* <Button variant="outline" size="sm">
                           <MessageSquare className="h-4 w-4 mr-2" />
                           Message
-                        </Button>
+                        </Button> */}
                         <Button size="sm">View Details</Button>
                       </div>
                     </div>
